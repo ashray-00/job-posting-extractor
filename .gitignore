@@ -1,0 +1,39 @@
+# Virtual environment
+.venv/
+
+# HuggingFace cache
+.hf_cache/
+
+# Environment variables
+.env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+
+# Data (large files)
+data/raw/*.csv
+data/raw/*.jsonl
+data/raw/.teacher_cache/
+# Keep few-shot examples (needed for prompts)
+!data/raw/few_shot_examples.jsonl
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Logs
+logs/
+
+# Pytest
+.pytest_cache/
+
+# Results (tracked selectively)
+# results/

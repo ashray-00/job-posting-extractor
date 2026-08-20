@@ -1,0 +1,17 @@
+pydantic==2.13.4
+datasets==5.0.1
+transformers==5.15.1
+tokenizers==0.22.2
+safetensors==0.8.0
+huggingface-hub==1.28.0
+numpy==2.5.2
+pandas==3.0.5
+pyarrow==25.0.1
+pyyaml==6.0.3
+requests==2.34.2
+pytest==9.1.1
+rich==15.0.0
+tqdm==4.70.0
+anthropic==0.122.0
+fastapi==0.141.1
+uvicorn==0.52.4
