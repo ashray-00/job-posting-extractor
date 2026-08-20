@@ -11,6 +11,7 @@ from __future__ import annotations
 import argparse
 import asyncio
 import json
+import os
 import subprocess
 import time
 from datetime import datetime, timezone
@@ -139,6 +140,7 @@ async def _vllm_one(
     constrained: bool,
     schema: dict,
     enable_thinking: bool,
+    api_key: str | None = None,
 ) -> tuple[dict[str, Any] | None, str, int, int, float]:
     """Returns (parsed, raw_text, prompt_tokens, completion_tokens, latency_ms)."""
     body: dict[str, Any] = {
@@ -160,9 +162,17 @@ async def _vllm_one(
             },
         }
 
+    headers: dict[str, str] = {}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+
     t0 = time.perf_counter()
     try:
-        resp = await client.post(f"{base_url.rstrip('/')}/chat/completions", json=body)
+        resp = await client.post(
+            f"{base_url.rstrip('/')}/chat/completions",
+            json=body,
+            headers=headers or None,
+        )
         resp.raise_for_status()
         data = resp.json()
     except Exception as exc:
@@ -266,6 +276,7 @@ async def _run_all(
     prompt_version: str,
     concurrency: int,
     enable_thinking: bool,
+    api_key: str | None = None,
 ) -> tuple[list[dict | None], list[dict], list[float], int, int, float]:
     """Returns preds, pred_rows, latencies_ms, prompt_total, completion_total, cost_usd."""
     sem = asyncio.Semaphore(concurrency)
@@ -318,6 +329,7 @@ async def _run_all(
                         constrained=constrained,
                         schema=schema,
                         enable_thinking=enable_thinking,
+                        api_key=api_key,
                     )
                 await _store(idx, doc, parsed, raw, pt, ct, lat, 0.0)
 
@@ -362,6 +374,7 @@ def run_eval(
     notes: str = "",
     vocab: dict[str, str] | None = None,
     enable_thinking: bool = False,
+    api_key: str | None = None,
 ) -> Path:
     versions = _available_prompt_versions()
     if prompt_version not in versions:
@@ -373,6 +386,9 @@ def run_eval(
     docs = _load_eval(eval_set)
     if not docs:
         raise SystemExit(f"No documents in {eval_set}")
+
+    if api_key is None:
+        api_key = os.environ.get("VLLM_API_KEY") or os.environ.get("OPENAI_API_KEY")
 
     wall_t0 = time.perf_counter()
     preds, pred_rows, latencies, prompt_total, completion_total, cost_usd = asyncio.run(
@@ -386,6 +402,7 @@ def run_eval(
             prompt_version=prompt_version,
             concurrency=concurrency,
             enable_thinking=enable_thinking,
+            api_key=api_key,
         )
     )
     wall_clock_s = time.perf_counter() - wall_t0
@@ -482,6 +499,12 @@ def main() -> None:
         default=False,
         help="Qwen3 reasoning mode. Default false — required for fair extraction baselines.",
     )
+    parser.add_argument(
+        "--api-key",
+        type=str,
+        default=None,
+        help="Bearer token for vLLM (defaults to env VLLM_API_KEY or OPENAI_API_KEY).",
+    )
     args = parser.parse_args()
 
     eval_path = Path(args.eval_set)
@@ -500,6 +523,7 @@ def main() -> None:
         concurrency=args.concurrency,
         notes=args.notes,
         enable_thinking=args.enable_thinking,
+        api_key=args.api_key,
     )
 
 
