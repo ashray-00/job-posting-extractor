@@ -280,10 +280,10 @@ def build_custom_dataset(
 # vllm bench serve invocation
 # ---------------------------------------------------------------------------
 
-def _run_help(prefix: list[str]) -> tuple[int, str]:
+def _run_help(prefix: list[str], help_arg: str = "--help") -> tuple[int, str]:
     try:
         proc = subprocess.run(
-            [*prefix, "--help"],
+            [*prefix, help_arg],
             capture_output=True,
             text=True,
             check=False,
@@ -294,21 +294,43 @@ def _run_help(prefix: list[str]) -> tuple[int, str]:
     return proc.returncode, text
 
 
+def _expanded_help(prefix: list[str]) -> tuple[int, str]:
+    """Fetch full flag help.
+
+    Recent vLLM FlexibleArgumentParser collapses ``--help`` into Config Groups
+    only; ``--help=all`` expands every flag (PROJECT.md: check live help).
+    """
+    code_all, text_all = _run_help(prefix, "--help=all")
+    if code_all == 0 and text_all.strip() and "--" in text_all:
+        return code_all, text_all
+    # Probe a known flag — search help still lists matching option strings.
+    code_probe, text_probe = _run_help(prefix, "--help=ignore-eos")
+    if code_probe == 0 and "--ignore-eos" in text_probe:
+        # Assemble by probing each required flag so missing detection works.
+        chunks = [text_probe]
+        for flag in _REQUIRED_HELP_FLAGS:
+            key = flag.lstrip("-")
+            c, t = _run_help(prefix, f"--help={key}")
+            if c == 0:
+                chunks.append(t)
+        return 0, "\n".join(chunks)
+    return _run_help(prefix, "--help")
+
+
 def _missing_flags(help_text: str) -> list[str]:
     return [f for f in _REQUIRED_HELP_FLAGS if f not in help_text]
 
 
 def _resolve_bench_prefix() -> tuple[list[str], str]:
-    """Return (argv prefix, help text) for a working ``… serve`` bench CLI."""
+    """Return (argv prefix, expanded help text) for a working serve bench CLI."""
     attempts: list[str] = []
     for cand in _BENCH_PREFIX_CANDIDATES:
         prefix = list(cand)
-        # Expand sys.executable placeholder already concrete in the tuple.
-        code, text = _run_help(prefix)
+        code, text = _expanded_help(prefix)
         missing = _missing_flags(text)
         preview = text.strip().replace("\n", " | ")[:240] or "(empty)"
         attempts.append(
-            f"  {' '.join(prefix)} --help → exit={code}, "
+            f"  {' '.join(prefix)} --help=all → exit={code}, "
             f"missing={len(missing)}/{len(_REQUIRED_HELP_FLAGS)}, "
             f"preview={preview!r}"
         )
@@ -323,8 +345,8 @@ def _resolve_bench_prefix() -> tuple[list[str], str]:
         + "\n".join(attempts)
         + "\n\nOn the pod, run:\n"
         "  vllm --version\n"
-        "  vllm bench serve --help | head -80\n"
-        "  python -m vllm.entrypoints.cli.main bench serve --help | head -80\n"
+        "  vllm bench serve --help=all | head -80\n"
+        "  vllm bench serve --help=ignore-eos\n"
         "If those look wrong, upgrade vLLM in this env "
         "(pip/uv install -U vllm) — the server process can stay up."
     )
