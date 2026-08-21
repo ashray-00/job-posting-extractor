@@ -22,3 +22,4 @@ trl==1.10.0
 peft==0.20.0
 accelerate==1.14.0
 torch==2.13.0
+matplotlib==3.10.8

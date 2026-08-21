@@ -1,0 +1,28 @@
+# Per-token API prices and self-hosted serving rates for src/report.py
+#
+# API prices are USD per 1_000_000 tokens (input and output billed separately).
+# Keys must match results/*.json "model" fields (exact string).
+
+api:
+  claude-haiku-4-5:
+    input_per_mtok: 0.80
+    output_per_mtok: 4.00
+
+# GPU $/hour while serving (RunPod / cloud). Used with bench docs/hour.
+gpu_usd_per_hour: 0.40
+
+# Map eval run_id → bench file stem (results/bench_{id}.json) for GPU $/1000.
+# concurrency: integer, or "best" = highest mean documents_per_hour in the bench.
+serving_benches:
+  tuned_r32_lr2e4_unconst:
+    bench_run_id: tuned_r32_lr2e4
+    concurrency: best
+  tuned_r32_lr2e4:
+    bench_run_id: tuned_r32_lr2e4
+    concurrency: best
+  baseline_b1:
+    bench_run_id: baseline_b2_8b   # fill after you bench the 8B server
+    concurrency: best
+  baseline_b2:
+    bench_run_id: baseline_b2_8b
+    concurrency: best

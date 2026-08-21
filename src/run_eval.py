@@ -153,12 +153,16 @@ async def _vllm_one(
         "chat_template_kwargs": {"enable_thinking": enable_thinking},
     }
     if constrained:
-        # Portable OpenAI-compatible shape (vLLM docs; not guided_json).
+        # Pydantic's raw model_json_schema() omits top-level ``required``, so
+        # vLLM will allow sparse objects (few keys → metrics fill nulls → tiny F1).
+        # Force every property required + additionalProperties false, same as teacher.
+        api_schema = teacher._prepare_schema_for_anthropic(schema)
         body["response_format"] = {
             "type": "json_schema",
             "json_schema": {
                 "name": "JobPosting",
-                "schema": schema,
+                "strict": True,
+                "schema": api_schema,
             },
         }
 

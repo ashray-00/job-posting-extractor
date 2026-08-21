@@ -1,0 +1,28 @@
+# One-time training / data cost for the payback curve (src/report.py).
+# Edit the numbers to match your actual spend. The script prints this
+# breakdown and uses the sum — do not only fill a total.
+
+# Teacher labelling API (Anthropic etc.) — all generate / calibrate calls.
+teacher_api_usd: 2.61
+
+# Every GPU hour that went into this project, including failed / aborted runs.
+# usd_per_hour should match what you actually paid (e.g. RunPod spot).
+gpu_hours:
+  - label: "train r16_lr1e4"
+    hours: 0.078
+    usd_per_hour: 0.40
+  - label: "train r32_lr1e4"
+    hours: 0.050
+    usd_per_hour: 0.40
+  - label: "train r32_lr2e4"
+    hours: 0.051
+    usd_per_hour: 0.40
+  - label: "failed runs / pod idle / vLLM restarts (estimate — edit)"
+    hours: 2.0
+    usd_per_hour: 0.40
+
+# Human time spent labelling / reviewing / filtering, at a stated rate.
+labelling:
+  hours: 4.0
+  usd_per_hour: 50.0
+  notes: "Review + filter + few-shot curation (edit to match)"
