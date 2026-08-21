@@ -1,0 +1,12 @@
+{
+  "n_general": 50,
+  "adapter_json_fraction": 0.0,
+  "mean_base_len_chars": 381.5,
+  "mean_adapter_len_chars": 240.6,
+  "mean_length_ratio_adapter_over_base": 0.6306,
+  "null_heavy_n": 27,
+  "null_heavy_definition": "eval docs with gold salary_min is null AND salary_max is null",
+  "hallucination_rate_base": 0.0,
+  "hallucination_rate_adapter": 0.0123,
+  "forgetting_md": "/workspace/job-posting-extractor/results/forgetting.md"
+}

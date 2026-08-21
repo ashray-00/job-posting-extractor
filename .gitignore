@@ -15,12 +15,16 @@ __pycache__/
 dist/
 build/
 
-# Data (large files)
+# Data (large / regenerable)
 data/raw/*.csv
 data/raw/*.jsonl
 data/raw/.teacher_cache/
 # Keep few-shot examples (needed for prompts)
 !data/raw/few_shot_examples.jsonl
+data/candidates.jsonl
+data/candidates_v1_loose.jsonl
+data/rejected.jsonl
+data/train/train_raw.jsonl
 
 # IDE
 .vscode/
@@ -35,5 +39,18 @@ logs/
 # Pytest
 .pytest_cache/
 
-# Results (tracked selectively)
-# results/
+# Matplotlib
+.matplotlib/
+
+# Results — keep metrics / preds / reports; skip weights & scratch
+results/adapters/
+results/bench_*_scratch/
+results/**/checkpoint-*/
+*.safetensors
+*.pt
+*.pth
+*.bin
+optimizer.pt
+rng_state.pth
+scheduler.pt
+training_args.bin

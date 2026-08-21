@@ -1,28 +1,32 @@
 # One-time training / data cost for the payback curve (src/report.py).
-# Edit the numbers to match your actual spend. The script prints this
-# breakdown and uses the sum — do not only fill a total.
+# Sourced from billing screenshots (Aug 2026). Script prints the breakdown.
 
-# Teacher labelling API (Anthropic etc.) — all generate / calibrate calls.
-teacher_api_usd: 2.61
+# Anthropic — Aug 19–20 UTC (Haiku labelling re-runs + Sonnet on the 19th).
+#   19 Aug: Haiku $3.17 + Sonnet $2.81 = $5.97
+#   20 Aug: Haiku $5.12
+teacher_api_usd: 11.09
 
-# Every GPU hour that went into this project, including failed / aborted runs.
-# usd_per_hour should match what you actually paid (e.g. RunPod spot).
+# RunPod — last 2 calendar days (GPU cloud only; train + eval + bench + idle).
+# Do not also add per-run train_meta hours — that would double-count.
+#   20 Aug GPU cloud: $3.795
+#   21 Aug GPU cloud: $3.092
+# Storage ($0.348 + $0.205) listed separately below.
 gpu_hours:
-  - label: "train r16_lr1e4"
-    hours: 0.078
-    usd_per_hour: 0.40
-  - label: "train r32_lr1e4"
-    hours: 0.050
-    usd_per_hour: 0.40
-  - label: "train r32_lr2e4"
-    hours: 0.051
-    usd_per_hour: 0.40
-  - label: "failed runs / pod idle / vLLM restarts (estimate — edit)"
-    hours: 2.0
-    usd_per_hour: 0.40
+  - label: "RunPod GPU cloud 20 Aug 2026"
+    hours: 1.0
+    usd_per_hour: 3.795
+  - label: "RunPod GPU cloud 21 Aug 2026"
+    hours: 1.0
+    usd_per_hour: 3.092
+  - label: "RunPod storage 20 Aug 2026"
+    hours: 1.0
+    usd_per_hour: 0.348
+  - label: "RunPod storage 21 Aug 2026"
+    hours: 1.0
+    usd_per_hour: 0.205
 
-# Human time spent labelling / reviewing / filtering, at a stated rate.
+# Human time — set to 0 (not from billing; optional opportunity cost).
 labelling:
-  hours: 4.0
-  usd_per_hour: 50.0
-  notes: "Review + filter + few-shot curation (edit to match)"
+  hours: 0
+  usd_per_hour: 0
+  notes: "excluded — only Anthropic + RunPod bills counted"

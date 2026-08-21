@@ -1,0 +1,330 @@
+{
+  "run_id": "tuned_r32_lr2e4",
+  "timestamp": "2026-08-21T15:09:08.040521+00:00",
+  "git_sha": "78f3c0dc46f84b33718a0361ca8b7c3909f39aec",
+  "model": "Qwen/Qwen3-1.7B",
+  "served_model_name": "tuned",
+  "tokenizer": null,
+  "base_url": "http://localhost:8000",
+  "prompt_version": "tuned_v1",
+  "eval_set": "/workspace/job-posting-extractor/data/eval/eval_v1.jsonl",
+  "decoding": {
+    "max_tokens": 256,
+    "ignore_eos": true,
+    "ignore_eos_cli_flag": "--ignore-eos",
+    "temperature": 0.0,
+    "enable_thinking": false
+  },
+  "workload": {
+    "num_prompts": 100,
+    "num_warmups": 20,
+    "repeats": 3,
+    "concurrencies": [
+      1,
+      4,
+      16,
+      64
+    ],
+    "request_rate": "inf",
+    "input_source": "eval_set_sampled",
+    "input_length_chars": {
+      "mean": 3102.95,
+      "std": 768.3128752288512,
+      "p50": 3052.5,
+      "p95": 4284.35,
+      "min": 1719.0,
+      "max": 6709.0
+    },
+    "sampling": "without_replacement"
+  },
+  "environment": {
+    "gpu_name": "NVIDIA GeForce RTX 4090",
+    "vllm_version": "0.27.1",
+    "server_flags": "vllm serve Qwen/Qwen3-1.7B --enable-lora --max-lora-rank 32 --lora-modules tuned=results/adapters/r32_lr2e4 --default-chat-template-kwargs {\"enable_thinking\": false}"
+  },
+  "load_generator": {
+    "tool": "vllm bench serve",
+    "backend": "openai-chat",
+    "endpoint": "/v1/chat/completions",
+    "rationale": "Upstream bench covers fixed output via --custom-output-len + --ignore-eos, --num-warmups, --max-concurrency, and TTFT/E2EL percentiles. This wrapper supplies eval-sampled prompts, concurrency×repeat aggregation, and environment metadata."
+  },
+  "configurations": [
+    {
+      "concurrency": 1,
+      "output_tokens_per_s": {
+        "mean": 166.39991843612722,
+        "std": 0.1415739540035211
+      },
+      "documents_per_hour": {
+        "mean": 2339.998853008039,
+        "std": 1.990883728174521
+      },
+      "e2e_latency_ms": {
+        "p50": {
+          "mean": 1537.090060301125,
+          "std": 1.2862052331900948
+        },
+        "p95": {
+          "mean": 1551.115721091628,
+          "std": 1.5043185905489154
+        }
+      },
+      "ttft_ms": {
+        "p50": {
+          "mean": 22.187305614352226,
+          "std": 0.9617222296197648
+        },
+        "p95": {
+          "mean": 28.82412128771345,
+          "std": 5.551315328768313
+        }
+      },
+      "trials": [
+        {
+          "output_tokens_per_s": 166.43422965038877,
+          "request_throughput_per_s": 0.6501337095718311,
+          "documents_per_hour": 2340.4813544585923,
+          "e2e_latency_p50_ms": 1536.9618963450193,
+          "e2e_latency_p95_ms": 1550.3801965154707,
+          "ttft_p50_ms": 22.04923238605261,
+          "ttft_p95_ms": 26.06012439355254,
+          "benchmark_duration_s": 153.8145131189376,
+          "completed_requests": 100.0,
+          "repeat": 0.0
+        },
+        {
+          "output_tokens_per_s": 166.24434231070484,
+          "request_throughput_per_s": 0.6493919621511908,
+          "documents_per_hour": 2337.811063744287,
+          "e2e_latency_p50_ms": 1538.4355494752526,
+          "e2e_latency_p95_ms": 1552.846284583211,
+          "ttft_p50_ms": 23.21060188114643,
+          "ttft_p95_ms": 35.21484639495611,
+          "benchmark_duration_s": 153.99020287953317,
+          "completed_requests": 100.0,
+          "repeat": 1.0
+        },
+        {
+          "output_tokens_per_s": 166.52118334728803,
+          "request_throughput_per_s": 0.6504733724503439,
+          "documents_per_hour": 2341.704140821238,
+          "e2e_latency_p50_ms": 1535.8727350831032,
+          "e2e_latency_p95_ms": 1550.1206821762025,
+          "ttft_p50_ms": 21.30208257585764,
+          "ttft_p95_ms": 25.19739307463169,
+          "benchmark_duration_s": 153.7341945655644,
+          "completed_requests": 100.0,
+          "repeat": 2.0
+        }
+      ]
+    },
+    {
+      "concurrency": 4,
+      "output_tokens_per_s": {
+        "mean": 620.1118852409664,
+        "std": 3.3913081139217134
+      },
+      "documents_per_hour": {
+        "mean": 8720.323386201091,
+        "std": 47.6902703520238
+      },
+      "e2e_latency_ms": {
+        "p50": {
+          "mean": 1650.9892912581563,
+          "std": 7.679026716119689
+        },
+        "p95": {
+          "mean": 1678.309644696613,
+          "std": 13.969299746450867
+        }
+      },
+      "ttft_ms": {
+        "p50": {
+          "mean": 31.590714119374752,
+          "std": 10.232401504506528
+        },
+        "p95": {
+          "mean": 38.38947443291545,
+          "std": 13.493061114047821
+        }
+      },
+      "trials": [
+        {
+          "output_tokens_per_s": 618.6786525181391,
+          "request_throughput_per_s": 2.4167134863989808,
+          "documents_per_hour": 8700.168551036331,
+          "e2e_latency_p50_ms": 1653.349818661809,
+          "e2e_latency_p95_ms": 1680.4974131286144,
+          "ttft_p50_ms": 32.079423777759075,
+          "ttft_p95_ms": 40.592015255242586,
+          "benchmark_duration_s": 41.37850869074464,
+          "completed_requests": 100.0,
+          "repeat": 0.0
+        },
+        {
+          "output_tokens_per_s": 617.6724987989571,
+          "request_throughput_per_s": 2.4127831984334263,
+          "documents_per_hour": 8686.019514360334,
+          "e2e_latency_p50_ms": 1657.2109451517463,
+          "e2e_latency_p95_ms": 1691.0559767857194,
+          "ttft_p50_ms": 41.57000407576561,
+          "ttft_p95_ms": 50.645760260522366,
+          "benchmark_duration_s": 41.44591195136309,
+          "completed_requests": 100.0,
+          "repeat": 1.0
+        },
+        {
+          "output_tokens_per_s": 623.9845044058031,
+          "request_throughput_per_s": 2.4374394703351685,
+          "documents_per_hour": 8774.782093206606,
+          "e2e_latency_p50_ms": 1642.4071099609137,
+          "e2e_latency_p95_ms": 1663.3755441755056,
+          "ttft_p50_ms": 21.12271450459957,
+          "ttft_p95_ms": 23.930647782981396,
+          "benchmark_duration_s": 41.026659827679396,
+          "completed_requests": 100.0,
+          "repeat": 2.0
+        }
+      ]
+    },
+    {
+      "concurrency": 16,
+      "output_tokens_per_s": {
+        "mean": 1787.2794355239034,
+        "std": 23.6967245907745
+      },
+      "documents_per_hour": {
+        "mean": 25133.617062054895,
+        "std": 333.2351895577659
+      },
+      "e2e_latency_ms": {
+        "p50": {
+          "mean": 2099.1052283595004,
+          "std": 43.77133515788848
+        },
+        "p95": {
+          "mean": 2175.3684249085686,
+          "std": 17.745249753443748
+        }
+      },
+      "ttft_ms": {
+        "p50": {
+          "mean": 57.61283387740453,
+          "std": 22.747556613511616
+        },
+        "p95": {
+          "mean": 83.99003244315584,
+          "std": 39.822632407285695
+        }
+      },
+      "trials": [
+        {
+          "output_tokens_per_s": 1772.2944392343238,
+          "request_throughput_per_s": 6.923025153259077,
+          "documents_per_hour": 24922.89055173268,
+          "e2e_latency_p50_ms": 2130.062402226031,
+          "e2e_latency_p95_ms": 2177.701254375279,
+          "ttft_p50_ms": 72.58679438382387,
+          "ttft_p95_ms": 117.0679399743676,
+          "benchmark_duration_s": 14.444552458822727,
+          "completed_requests": 100.0,
+          "repeat": 0.0
+        },
+        {
+          "output_tokens_per_s": 1814.5992423862672,
+          "request_throughput_per_s": 7.088278290571356,
+          "documents_per_hour": 25517.801846056882,
+          "e2e_latency_p50_ms": 2049.026499502361,
+          "e2e_latency_p95_ms": 2156.5721401013434,
+          "ttft_p50_ms": 31.436639837920666,
+          "ttft_p95_ms": 39.78826832026243,
+          "benchmark_duration_s": 14.107798241078854,
+          "completed_requests": 100.0,
+          "repeat": 1.0
+        },
+        {
+          "output_tokens_per_s": 1774.9446249511195,
+          "request_throughput_per_s": 6.933377441215311,
+          "documents_per_hour": 24960.15878837512,
+          "e2e_latency_p50_ms": 2118.22678335011,
+          "e2e_latency_p95_ms": 2191.831880249083,
+          "ttft_p50_ms": 68.81506741046906,
+          "ttft_p95_ms": 95.11388903483747,
+          "benchmark_duration_s": 14.42298516817391,
+          "completed_requests": 100.0,
+          "repeat": 2.0
+        }
+      ]
+    },
+    {
+      "concurrency": 64,
+      "output_tokens_per_s": {
+        "mean": 3724.290175366981,
+        "std": 82.5206636508289
+      },
+      "documents_per_hour": {
+        "mean": 52372.83059109817,
+        "std": 1160.446832589781
+      },
+      "e2e_latency_ms": {
+        "p50": {
+          "mean": 3891.5222507591047,
+          "std": 38.13932101331322
+        },
+        "p95": {
+          "mean": 3990.6942903374634,
+          "std": 100.9339302594883
+        }
+      },
+      "ttft_ms": {
+        "p50": {
+          "mean": 77.07515203704436,
+          "std": 33.71404156045632
+        },
+        "p95": {
+          "mean": 170.43990464881063,
+          "std": 93.4743068724836
+        }
+      },
+      "trials": [
+        {
+          "output_tokens_per_s": 3801.2602954319404,
+          "request_throughput_per_s": 14.848673029031017,
+          "documents_per_hour": 53455.22290451166,
+          "e2e_latency_p50_ms": 3859.504597261548,
+          "e2e_latency_p95_ms": 3928.849336504936,
+          "ttft_p50_ms": 55.3344851359725,
+          "ttft_p95_ms": 116.199523024261,
+          "benchmark_duration_s": 6.73460852727294,
+          "completed_requests": 100.0,
+          "repeat": 0.0
+        },
+        {
+          "output_tokens_per_s": 3734.4503657939513,
+          "request_throughput_per_s": 14.587696741382622,
+          "documents_per_hour": 52515.70826897744,
+          "e2e_latency_p50_ms": 3881.3440538942814,
+          "e2e_latency_p95_ms": 3936.0652649775147,
+          "ttft_p50_ms": 59.97864529490471,
+          "ttft_p95_ms": 116.74591479822993,
+          "benchmark_duration_s": 6.855091778561473,
+          "completed_requests": 100.0,
+          "repeat": 1.0
+        },
+        {
+          "output_tokens_per_s": 3637.1598648750523,
+          "request_throughput_per_s": 14.207655722168173,
+          "documents_per_hour": 51147.56059980542,
+          "e2e_latency_p50_ms": 3933.7181011214852,
+          "e2e_latency_p95_ms": 4107.168269529939,
+          "ttft_p50_ms": 115.91232568025589,
+          "ttft_p95_ms": 278.37427612394094,
+          "benchmark_duration_s": 7.038458839058876,
+          "completed_requests": 100.0,
+          "repeat": 2.0
+        }
+      ]
+    }
+  ],
+  "notes": ""
+}

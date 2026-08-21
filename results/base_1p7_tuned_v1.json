@@ -1,0 +1,368 @@
+{
+  "run_id": "base_1p7_tuned_v1",
+  "timestamp": "2026-08-20T17:41:59.553019+00:00",
+  "git_sha": "e61d030c7c904ae44380c39bcf8ff837af0e1017",
+  "model": "Qwen/Qwen3-1.7B",
+  "adapter": null,
+  "quantization": null,
+  "decoding": {
+    "constrained": true,
+    "temperature": 0.0,
+    "max_tokens": 4096,
+    "seed": 42,
+    "backend": "vllm",
+    "base_url": "http://localhost:8000/v1",
+    "enable_thinking": false
+  },
+  "prompt_version": "tuned_v1",
+  "eval_set": "eval_v1",
+  "metrics": {
+    "schema_valid_rate": 1.0,
+    "field_f1": {
+      "title": {
+        "precision": 0.8256410256410256,
+        "recall": 0.8214285714285714,
+        "f1": 0.8235294117647058,
+        "support": 196
+      },
+      "seniority": {
+        "precision": 1.0,
+        "recall": 0.0051813471502590676,
+        "f1": 0.010309278350515464,
+        "support": 193
+      },
+      "contract_type": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 196
+      },
+      "workload": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 196
+      },
+      "salary_min": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 169
+      },
+      "salary_max": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 169
+      },
+      "salary_period": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 169
+      },
+      "currency": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 170
+      },
+      "remote_policy": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 192
+      },
+      "location_city": {
+        "precision": 0.8144329896907216,
+        "recall": 0.9080459770114943,
+        "f1": 0.8586956521739131,
+        "support": 174
+      },
+      "location_country": {
+        "precision": 0.010309278350515464,
+        "recall": 0.010256410256410256,
+        "f1": 0.010282776349614397,
+        "support": 195
+      },
+      "required_skills": {
+        "precision": 0.02072538860103627,
+        "recall": 0.02040816326530612,
+        "f1": 0.020565552699228794,
+        "support": 196
+      },
+      "nice_to_have_skills": {
+        "precision": 0.024390243902439025,
+        "recall": 0.012195121951219513,
+        "f1": 0.016260162601626015,
+        "support": 164
+      },
+      "years_experience_min": {
+        "precision": 0.6464646464646465,
+        "recall": 0.5925925925925926,
+        "f1": 0.6183574879227053,
+        "support": 108
+      },
+      "languages": {
+        "precision": 0.005649717514124294,
+        "recall": 0.007352941176470588,
+        "f1": 0.006389776357827476,
+        "support": 136
+      },
+      "visa_sponsorship": {
+        "precision": 0.006535947712418301,
+        "recall": 1.0,
+        "f1": 0.012987012987012988,
+        "support": 1
+      }
+    },
+    "macro_f1": 0.14858606945044683,
+    "hallucination_rate": 0.505859375,
+    "omission_rate": 0.6074695121951219,
+    "exact_record_match": 0.0,
+    "skill_set_f1": {
+      "precision": 0.24017857142857144,
+      "recall": 0.1718849840255591,
+      "f1": 0.2003724394785847
+    },
+    "by_difficulty": {
+      "adversarial": {
+        "schema_valid_rate": 1.0,
+        "field_f1": {
+          "title": {
+            "precision": 0.75,
+            "recall": 0.75,
+            "f1": 0.75,
+            "support": 4
+          },
+          "seniority": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "contract_type": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "workload": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "salary_min": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "salary_max": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "salary_period": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "currency": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "remote_policy": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "location_city": {
+            "precision": 1.0,
+            "recall": 1.0,
+            "f1": 1.0,
+            "support": 4
+          },
+          "location_country": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "required_skills": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "nice_to_have_skills": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 4
+          },
+          "years_experience_min": {
+            "precision": 0.5,
+            "recall": 1.0,
+            "f1": 0.6666666666666666,
+            "support": 1
+          },
+          "languages": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 2
+          },
+          "visa_sponsorship": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 0
+          }
+        },
+        "macro_f1": 0.15104166666666666,
+        "hallucination_rate": 0.4444444444444444,
+        "omission_rate": 0.6181818181818182,
+        "exact_record_match": 0.0,
+        "skill_set_f1": {
+          "precision": 0.18181818181818182,
+          "recall": 0.2,
+          "f1": 0.1904761904761905
+        }
+      },
+      "clean": {
+        "schema_valid_rate": 1.0,
+        "field_f1": {
+          "title": {
+            "precision": 0.8272251308900523,
+            "recall": 0.8229166666666666,
+            "f1": 0.8250652741514359,
+            "support": 192
+          },
+          "seniority": {
+            "precision": 1.0,
+            "recall": 0.005291005291005291,
+            "f1": 0.010526315789473682,
+            "support": 189
+          },
+          "contract_type": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 192
+          },
+          "workload": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 192
+          },
+          "salary_min": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 165
+          },
+          "salary_max": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 165
+          },
+          "salary_period": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 165
+          },
+          "currency": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 166
+          },
+          "remote_policy": {
+            "precision": 0.0,
+            "recall": 0.0,
+            "f1": 0.0,
+            "support": 188
+          },
+          "location_city": {
+            "precision": 0.8105263157894737,
+            "recall": 0.9058823529411765,
+            "f1": 0.8555555555555556,
+            "support": 170
+          },
+          "location_country": {
+            "precision": 0.010526315789473684,
+            "recall": 0.010471204188481676,
+            "f1": 0.010498687664041995,
+            "support": 191
+          },
+          "required_skills": {
+            "precision": 0.021164021164021163,
+            "recall": 0.020833333333333332,
+            "f1": 0.020997375328083993,
+            "support": 192
+          },
+          "nice_to_have_skills": {
+            "precision": 0.025,
+            "recall": 0.0125,
+            "f1": 0.016666666666666666,
+            "support": 160
+          },
+          "years_experience_min": {
+            "precision": 0.6494845360824743,
+            "recall": 0.5887850467289719,
+            "f1": 0.6176470588235294,
+            "support": 107
+          },
+          "languages": {
+            "precision": 0.005747126436781609,
+            "recall": 0.007462686567164179,
+            "f1": 0.006493506493506493,
+            "support": 134
+          },
+          "visa_sponsorship": {
+            "precision": 0.006622516556291391,
+            "recall": 1.0,
+            "f1": 0.013157894736842105,
+            "support": 1
+          }
+        },
+        "macro_f1": 0.148538020950571,
+        "hallucination_rate": 0.5069582504970179,
+        "omission_rate": 0.6072401712728688,
+        "exact_record_match": 0.0,
+        "skill_set_f1": {
+          "precision": 0.24134790528233152,
+          "recall": 0.1715210355987055,
+          "f1": 0.200529701097238
+        }
+      }
+    }
+  },
+  "tokens": {
+    "prompt_total": 175670,
+    "completion_total": 35617,
+    "prompt_avg_per_doc": 896.3,
+    "completion_avg_per_doc": 181.7,
+    "n_docs": 196
+  },
+  "timing": {
+    "wall_clock_s": 34.262,
+    "p50_latency_ms": 1246.07,
+    "p95_latency_ms": 1955.79
+  },
+  "cost": {
+    "usd_total": 0.0,
+    "usd_per_1000_docs": 0.0
+  },
+  "notes": ""
+}
