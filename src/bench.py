@@ -41,7 +41,6 @@ import shlex
 import statistics
 import subprocess
 import sys
-import tempfile
 import time
 from datetime import datetime, timezone
 from pathlib import Path
@@ -381,10 +380,27 @@ def _parse_host_port(base_url: str) -> tuple[str, int, str | None]:
 
 
 def _percentile_from_bench_json(result: dict[str, Any], metric: str, p: float) -> float:
-    """Extract percentile ``p`` for ``ttft`` or ``e2el`` from a bench result dict."""
+    """Extract percentile ``p`` for ``ttft`` or ``e2el`` from a bench result dict.
+
+    Newer vLLM writes flat keys (``p50_e2el_ms``, ``p95_ttft_ms``). Older builds
+    used ``percentiles_e2el_ms`` as a list of ``[p, value]`` pairs.
+    """
+    target = float(p)
+    p_int = int(target) if target == int(target) else None
+
+    # Current vLLM bench JSON shape (seen on RunPod): p50_e2el_ms, p95_ttft_ms, …
+    if p_int is not None:
+        flat = result.get(f"p{p_int}_{metric}_ms")
+        if flat is not None:
+            return float(flat)
+
+    if math.isclose(target, 50.0):
+        for key in (f"median_{metric}_ms", f"p50_{metric}_ms"):
+            if result.get(key) is not None:
+                return float(result[key])
+
     key = f"percentiles_{metric}_ms"
     items = result.get(key) or []
-    target = float(p)
     for item in items:
         if isinstance(item, (list, tuple)) and len(item) >= 2:
             if float(item[0]) == target:
@@ -393,13 +409,11 @@ def _percentile_from_bench_json(result: dict[str, Any], metric: str, p: float) -
             pp = item.get("percentile", item.get("p"))
             if pp is not None and float(pp) == target:
                 return float(item.get("value", item.get("ms", 0.0)))
-    if math.isclose(target, 50.0):
-        median_key = f"median_{metric}_ms"
-        if median_key in result and result[median_key] is not None:
-            return float(result[median_key])
+
     raise KeyError(
         f"percentile {p} for {metric} not found in bench result "
-        f"(looked at {key!r}; keys={sorted(result)[:40]}…)"
+        f"(tried p{{N}}_{metric}_ms / median / {key!r}; "
+        f"keys={sorted(result)})"
     )
 
 
@@ -423,9 +437,14 @@ def _extract_trial_metrics(result: dict[str, Any]) -> dict[str, float]:
         "e2e_latency_p95_ms": _percentile_from_bench_json(result, "e2el", 95),
         "ttft_p50_ms": _percentile_from_bench_json(result, "ttft", 50),
         "ttft_p95_ms": _percentile_from_bench_json(result, "ttft", 95),
-        "benchmark_duration_s": float(result.get("duration", result.get("benchmark_duration_s", 0.0)) or 0.0),
-        "completed_requests": float(result.get("completed", result.get("successful_requests", 0)) or 0),
+        "benchmark_duration_s": float(
+            result.get("duration", result.get("benchmark_duration_s", 0.0)) or 0.0
+        ),
+        "completed_requests": float(
+            result.get("completed", result.get("successful_requests", 0)) or 0
+        ),
     }
+
 
 
 def _build_bench_cmd(
@@ -601,56 +620,65 @@ def run_bench(
     eval_docs = _load_eval(eval_set)
     _RESULTS.mkdir(parents=True, exist_ok=True)
 
-    with tempfile.TemporaryDirectory(prefix=f"bench_{run_id}_", dir=_RESULTS) as tmp:
-        tmp_path = Path(tmp)
-        dataset_path = tmp_path / "custom_prompts.jsonl"
-        length_meta = build_custom_dataset(
-            eval_docs,
-            prompt_version=prompt_version,
-            num_prompts=num_prompts,
-            seed=seed,
-            out_path=dataset_path,
-        )
+    # Persist trial JSONs under results/ so a later parse failure does not
+    # delete a long GPU run (TemporaryDirectory would).
+    scratch = _RESULTS / f"bench_{run_id}_scratch"
+    scratch.mkdir(parents=True, exist_ok=True)
+    dataset_path = scratch / "custom_prompts.jsonl"
+    length_meta = build_custom_dataset(
+        eval_docs,
+        prompt_version=prompt_version,
+        num_prompts=num_prompts,
+        seed=seed,
+        out_path=dataset_path,
+    )
 
-        configurations: list[dict[str, Any]] = []
-        for concurrency in conc:
-            trial_metrics: list[dict[str, float]] = []
-            for rep in range(repeats):
-                fname = f"c{concurrency}_r{rep}.json"
-                result_path = tmp_path / fname
-                cmd = _build_bench_cmd(
-                    bench_prefix=bench_prefix,
-                    help_text=help_text,
-                    model=model,
-                    served_model_name=served_model_name,
-                    tokenizer=tokenizer,
-                    base_url=base_url,
-                    dataset_path=dataset_path,
-                    result_dir=tmp_path,
-                    result_filename=fname,
-                    max_concurrency=concurrency,
-                    num_prompts=num_prompts,
-                    num_warmups=num_warmups,
-                    max_tokens=max_tokens,
-                    enable_thinking=enable_thinking,
-                    seed=seed + concurrency * 100 + rep,
-                )
-                print(
-                    f"[bench] concurrency={concurrency} repeat={rep + 1}/{repeats}",
-                    flush=True,
-                )
-                raw = _run_vllm_bench(cmd, result_path)
+    configurations: list[dict[str, Any]] = []
+    for concurrency in conc:
+        trial_metrics: list[dict[str, float]] = []
+        for rep in range(repeats):
+            fname = f"c{concurrency}_r{rep}.json"
+            result_path = scratch / fname
+            cmd = _build_bench_cmd(
+                bench_prefix=bench_prefix,
+                help_text=help_text,
+                model=model,
+                served_model_name=served_model_name,
+                tokenizer=tokenizer,
+                base_url=base_url,
+                dataset_path=dataset_path,
+                result_dir=scratch,
+                result_filename=fname,
+                max_concurrency=concurrency,
+                num_prompts=num_prompts,
+                num_warmups=num_warmups,
+                max_tokens=max_tokens,
+                enable_thinking=enable_thinking,
+                seed=seed + concurrency * 100 + rep,
+            )
+            print(
+                f"[bench] concurrency={concurrency} repeat={rep + 1}/{repeats}",
+                flush=True,
+            )
+            raw = _run_vllm_bench(cmd, result_path)
+            try:
                 metrics = _extract_trial_metrics(raw)
-                metrics["repeat"] = float(rep)
-                trial_metrics.append(metrics)
+            except Exception:
                 print(
-                    f"[bench]   output_tok/s={metrics['output_tokens_per_s']:.2f}  "
-                    f"docs/h={metrics['documents_per_hour']:.1f}  "
-                    f"e2e_p50={metrics['e2e_latency_p50_ms']:.1f}ms  "
-                    f"ttft_p50={metrics['ttft_p50_ms']:.1f}ms",
+                    f"[bench] failed to parse {result_path} — file kept for reuse",
                     flush=True,
                 )
-            configurations.append(_aggregate_config(concurrency, trial_metrics))
+                raise
+            metrics["repeat"] = float(rep)
+            trial_metrics.append(metrics)
+            print(
+                f"[bench]   output_tok/s={metrics['output_tokens_per_s']:.2f}  "
+                f"docs/h={metrics['documents_per_hour']:.1f}  "
+                f"e2e_p50={metrics['e2e_latency_p50_ms']:.1f}ms  "
+                f"ttft_p50={metrics['ttft_p50_ms']:.1f}ms",
+                flush=True,
+            )
+        configurations.append(_aggregate_config(concurrency, trial_metrics))
 
     record = {
         "run_id": run_id,
