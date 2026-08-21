@@ -60,7 +60,7 @@ DEFAULT_NUM_WARMUPS = 20
 DEFAULT_MAX_TOKENS = 256
 DEFAULT_NUM_PROMPTS = 100
 
-# Flags we require from ``vllm bench serve --help`` before running.
+# Flags we require from the live bench --help before running.
 _REQUIRED_HELP_FLAGS = (
     "--ignore-eos",
     "--num-warmups",
@@ -74,6 +74,13 @@ _REQUIRED_HELP_FLAGS = (
     "--result-dir",
     "--result-filename",
     "--num-prompts",
+)
+
+# Try these in order; some images ship a stub ``vllm bench`` without serve flags.
+_BENCH_PREFIX_CANDIDATES: tuple[tuple[str, ...], ...] = (
+    ("vllm", "bench", "serve"),
+    (sys.executable, "-m", "vllm.entrypoints.cli.main", "bench", "serve"),
+    (sys.executable, "-m", "vllm.benchmarks.serve"),
 )
 
 
@@ -273,31 +280,64 @@ def build_custom_dataset(
 # vllm bench serve invocation
 # ---------------------------------------------------------------------------
 
-def _bench_serve_help() -> str:
+def _run_help(prefix: list[str]) -> tuple[int, str]:
     try:
-        return subprocess.check_output(
-            ["vllm", "bench", "serve", "--help"],
-            stderr=subprocess.STDOUT,
+        proc = subprocess.run(
+            [*prefix, "--help"],
+            capture_output=True,
             text=True,
+            check=False,
         )
-    except FileNotFoundError as exc:
-        raise RuntimeError(
-            "``vllm`` CLI not found on PATH. Install vLLM on the bench client "
-            "(same machine that will call the OpenAI-compatible server)."
-        ) from exc
-    except subprocess.CalledProcessError as exc:
-        raise RuntimeError(
-            f"``vllm bench serve --help`` failed:\n{exc.output}"
-        ) from exc
+    except FileNotFoundError:
+        return 127, f"executable not found: {prefix[0]}"
+    text = (proc.stdout or "") + (proc.stderr or "")
+    return proc.returncode, text
+
+
+def _missing_flags(help_text: str) -> list[str]:
+    return [f for f in _REQUIRED_HELP_FLAGS if f not in help_text]
+
+
+def _resolve_bench_prefix() -> tuple[list[str], str]:
+    """Return (argv prefix, help text) for a working ``… serve`` bench CLI."""
+    attempts: list[str] = []
+    for cand in _BENCH_PREFIX_CANDIDATES:
+        prefix = list(cand)
+        # Expand sys.executable placeholder already concrete in the tuple.
+        code, text = _run_help(prefix)
+        missing = _missing_flags(text)
+        preview = text.strip().replace("\n", " | ")[:240] or "(empty)"
+        attempts.append(
+            f"  {' '.join(prefix)} --help → exit={code}, "
+            f"missing={len(missing)}/{len(_REQUIRED_HELP_FLAGS)}, "
+            f"preview={preview!r}"
+        )
+        if code == 0 and not missing:
+            print(f"[bench] using load generator: {' '.join(prefix)}", flush=True)
+            return prefix, text
+
+    raise RuntimeError(
+        "Could not find a working vLLM serve benchmark CLI with the required "
+        "flags (--ignore-eos, --num-warmups, --custom-output-len, …).\n"
+        "Tried:\n"
+        + "\n".join(attempts)
+        + "\n\nOn the pod, run:\n"
+        "  vllm --version\n"
+        "  vllm bench serve --help | head -80\n"
+        "  python -m vllm.entrypoints.cli.main bench serve --help | head -80\n"
+        "If those look wrong, upgrade vLLM in this env "
+        "(pip/uv install -U vllm) — the server process can stay up."
+    )
 
 
 def _assert_required_flags(help_text: str) -> None:
-    missing = [f for f in _REQUIRED_HELP_FLAGS if f not in help_text]
+    missing = _missing_flags(help_text)
     if missing:
         raise RuntimeError(
-            "Installed ``vllm bench serve`` is missing required flags "
+            "Bench CLI --help is missing required flags "
             f"{missing}. Upgrade vLLM or update src/bench.py. "
-            "Checked against live --help (PROJECT.md rule 2)."
+            "Checked against live --help (PROJECT.md rule 2).\n"
+            f"Help preview:\n{help_text[:1500]}"
         )
 
 
@@ -368,6 +408,7 @@ def _extract_trial_metrics(result: dict[str, Any]) -> dict[str, float]:
 
 def _build_bench_cmd(
     *,
+    bench_prefix: list[str],
     help_text: str,
     model: str,
     base_url: str,
@@ -383,9 +424,7 @@ def _build_bench_cmd(
 ) -> list[str]:
     host, port, full_base = _parse_host_port(base_url)
     cmd: list[str] = [
-        "vllm",
-        "bench",
-        "serve",
+        *bench_prefix,
         "--backend",
         "openai-chat",
         "--endpoint",
@@ -505,7 +544,8 @@ def run_bench(
     if not run_id or "/" in run_id or "\\" in run_id:
         raise ValueError(f"invalid run_id: {run_id!r}")
 
-    help_text = _bench_serve_help()
+    help_text = ""  # set below
+    bench_prefix, help_text = _resolve_bench_prefix()
     _assert_required_flags(help_text)
 
     conc = list(concurrencies or DEFAULT_CONCURRENCIES)
@@ -546,6 +586,7 @@ def run_bench(
                 fname = f"c{concurrency}_r{rep}.json"
                 result_path = tmp_path / fname
                 cmd = _build_bench_cmd(
+                    bench_prefix=bench_prefix,
                     help_text=help_text,
                     model=model,
                     base_url=base_url,
@@ -607,7 +648,7 @@ def run_bench(
             "server_flags": flags,
         },
         "load_generator": {
-            "tool": "vllm bench serve",
+            "tool": " ".join(bench_prefix),
             "backend": "openai-chat",
             "endpoint": "/v1/chat/completions",
             "rationale": (
