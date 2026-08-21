@@ -433,6 +433,8 @@ def _build_bench_cmd(
     bench_prefix: list[str],
     help_text: str,
     model: str,
+    served_model_name: str | None,
+    tokenizer: str | None,
     base_url: str,
     dataset_path: Path,
     result_dir: Path,
@@ -445,6 +447,9 @@ def _build_bench_cmd(
     seed: int,
 ) -> list[str]:
     host, port, full_base = _parse_host_port(base_url)
+    # ``--model`` is also used to load the tokenizer from disk/HF. For LoRA
+    # aliases like ``tuned``, pass the base HF id as --model and the API name
+    # as --served-model-name (or set --tokenizer explicitly).
     cmd: list[str] = [
         *bench_prefix,
         "--backend",
@@ -480,6 +485,10 @@ def _build_bench_cmd(
         "--seed",
         str(seed),
     ]
+    if served_model_name and "--served-model-name" in help_text:
+        cmd.extend(["--served-model-name", served_model_name])
+    if tokenizer and "--tokenizer" in help_text:
+        cmd.extend(["--tokenizer", tokenizer])
     if full_base is not None and "--base-url" in help_text:
         cmd.extend(["--base-url", full_base])
     else:
@@ -554,6 +563,8 @@ def run_bench(
     eval_set: Path,
     prompt_version: str,
     server_flags: str | None,
+    served_model_name: str | None = None,
+    tokenizer: str | None = None,
     concurrencies: list[int] | None = None,
     repeats: int = DEFAULT_REPEATS,
     num_warmups: int = DEFAULT_NUM_WARMUPS,
@@ -611,6 +622,8 @@ def run_bench(
                     bench_prefix=bench_prefix,
                     help_text=help_text,
                     model=model,
+                    served_model_name=served_model_name,
+                    tokenizer=tokenizer,
                     base_url=base_url,
                     dataset_path=dataset_path,
                     result_dir=tmp_path,
@@ -644,6 +657,8 @@ def run_bench(
         "timestamp": datetime.now(timezone.utc).isoformat(),
         "git_sha": _git_sha(),
         "model": model,
+        "served_model_name": served_model_name,
+        "tokenizer": tokenizer,
         "base_url": base_url,
         "prompt_version": prompt_version,
         "eval_set": str(eval_set),
@@ -700,7 +715,27 @@ def main() -> None:
         )
     )
     parser.add_argument("--run-id", type=str, required=True)
-    parser.add_argument("--model", type=str, required=True)
+    parser.add_argument(
+        "--model",
+        type=str,
+        required=True,
+        help=(
+            "HF id / path used to load the tokenizer (e.g. Qwen/Qwen3-1.7B). "
+            "Not the LoRA API alias alone — use --served-model-name for that."
+        ),
+    )
+    parser.add_argument(
+        "--served-model-name",
+        type=str,
+        default=None,
+        help="Model name in API requests (e.g. tuned for --lora-modules tuned=...).",
+    )
+    parser.add_argument(
+        "--tokenizer",
+        type=str,
+        default=None,
+        help="Optional tokenizer override; defaults to --model.",
+    )
     parser.add_argument(
         "--base-url",
         type=str,
@@ -766,6 +801,8 @@ def main() -> None:
     run_bench(
         run_id=args.run_id,
         model=args.model,
+        served_model_name=args.served_model_name,
+        tokenizer=args.tokenizer,
         base_url=args.base_url,
         eval_set=eval_path,
         prompt_version=args.prompt_version,
